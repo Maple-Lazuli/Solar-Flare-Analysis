@@ -1,5 +1,5 @@
 ---
-title: "Analysis For Assignment 1"
+title: "Solar Flare Analysis and Rule Mining"
 author: "Ada Lazuli"
 date: '2022-06-07'
 output:
