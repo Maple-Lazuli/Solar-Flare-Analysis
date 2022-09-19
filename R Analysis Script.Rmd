@@ -1,0 +1,332 @@
+---
+title: "Analysis For Assignment 1"
+author: "Ada Lazuli"
+date: '2022-06-07'
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(ggplot2)
+library(dplyr)
+```
+
+# Data Loading
+
+```{r data-loading}
+df <- read.csv("solar_flare.csv")
+```
+
+The solar flare data has `r nrow(df)` observations and `r ncol(df)` variables 
+for each observation. More specifically, the variables are:
+```{r variables}
+names(df)
+```
+
+Lastly, there are exactly `r sum(is.na(df))` missing values in this data set.
+
+## Data Preparation
+
+The structure of the data is:
+```{r structure}
+str(df)
+```
+According to Bradshaw (1989), the several of these values are factors, but R
+seems to have missed this as the data was read into memory.
+
+```{r factor-creation}
+factors <- c( "mod_zurich_class","largest_spot_size","spot_distribution","activity","evolution","previous_day_activity","hist_complex","become_hist_complex","area","area_largest" )
+for (f in factors) {
+  df[[f]] <- factor(df[[f]])
+}
+str(df)
+```
+
+# Exploratory Analysis
+
+## Univariate Analysis
+
+### c.class
+
+According to Bradshaw (1989), `c.class` is a count of the number of _common_ flares
+in the region during a 24 hour period. This variable is loaded in R as a `r class(df$c.class)`
+
+The 5-number summary for c.class is and distribution is:
+```{r c.class-summary-bars}
+summary(df$c.class)
+ggplot(df, aes(x = c.class)) + geom_bar() + ggtitle("Frequency Of Common Solar Flares In 24 Hours") +  xlab("Number of Common Solar Flares") + ylab("Number of Occurrences")
+```
+
+It seems that c.class has a strong right skew and the majority of the observations
+have 0 occurrences of common solar flares in a 24 hour period. Occurrences
+
+### m.class
+
+According to Bradshaw (1989), `c.class` is a count of the number of _moderate_ flares
+in the region during a 24 hour period. This variable is loaded in R as a `r class(df$m.class)`
+
+The 5-number summary for c.class is and distribution is:
+```{r m.class-summary-bars}
+summary(df$m.class)
+ggplot(df, aes(x = m.class)) + geom_bar() + ggtitle("Frequency Of Moderate Solar Flares In 24 Hours") +  xlab("Number of Moderate Solar Flares") + ylab("Number of Occurrences")
+```
+
+It seems that m.class has a strong right skew and the majority of the observations
+have 0 occurrences of _moderate_ solar flares in a 24 hour period.
+
+Additionally, there seems to be an oddity with the moderate class variable in that
+there are 0 occurrences of 3 moderate events, but a total of `r sum(df$m.class == 4)` 
+occurrences of 4 moderate events in a 24 hour period. 
+
+These 2 occurrences of 4 moderate solar flares in a 24 hour period seem outlines.
+
+### x.class
+
+According to Bradshaw (1989), `x.class` is a count of the number of _severe_ flares
+in the region during a 24 hour period. This variable is loaded in R as a `r class(df$x.class)`
+
+The 5-number summary for c.class is and distribution is:
+```{r x.class-summary-bars}
+summary(df$x.class)
+ggplot(df, aes(x = x.class)) + geom_bar() + ggtitle("Frequency Of Severe Solar Flares In 24 Hours") +  xlab("Number of Severe Solar Flares") + ylab("Number of Occurrences")
+```
+
+It seems that c.class has a strong right skew and the majority of the observations
+have 0 occurrences of severe solar flares in a 24 hour period. The maximum number of 
+severe solar flares in a 24 hour period seems to be 1, and this occurred `r sum(df$x.class == 1)` times.
+
+
+### mod_zurich_class
+
+
+According to the SIDC, the modified zurich classification refers to the characteristics of the penumbra.
+This variable is stored as a `r class(df$mod_zurich_class)` in R. The classifications seen in the data are `r sort(unique(df$mod_zurich_class))`.
+
+__Notably, A class observations are missing.__
+
+The distribution of the modified zurich classes found in the data is depicted below.
+
+```{r mod-zur}
+ggplot(df, aes(x = mod_zurich_class, fill = mod_zurich_class)) + geom_bar(alpha = 0.5) + ggtitle("Frequency Of Modified Zurich Classes") +  xlab("Modified Zurich Class") + ylab("Number of Occurrences")
+```
+
+__E__ and __F__ classes seem under represented, while __D__ class slightly over represented. 
+# Association Mining
+
+### largest_spot_size (P Classes)
+
+
+According to the SIDC, the P Classes (listed as `largest_spot_size` in the data) describes characteristics of the primary penumbra.
+This variable is stored as a `r class(df$largest_spot_size)` in R. The classifications seen in the data are `r sort(unique(df$largest_spot_size))`.
+
+
+The distribution of the P classes found in the data is depicted below.
+
+```{r p-class}
+ggplot(df, aes(x = largest_spot_size, fill = largest_spot_size)) + geom_bar(alpha = 0.5) + ggtitle("Frequency Of Largest Spot Size Classes") +  xlab("Largest Spot Size Class") + ylab("Number of Occurrences")
+```
+
+The distribution in the dataset is not uniform. It appears that __H__ class is under represented while __S__ class is over represented.
+
+
+### Spot Distribution (C Classes)
+
+
+According to the SIDC, the C Classes (listed as `spot_distribution` in the data) describes characteristics of the primary penumbra.
+This variable is stored as a `r class(df$spot_distribution)` in R. The classifications seen in the data are `r sort(unique(df$spot_distribution))`.
+
+
+The distribution of the C classes found in the data is depicted below.
+
+```{r c-class}
+ggplot(df, aes(x = spot_distribution, fill = spot_distribution)) + geom_bar(alpha = 0.5) + ggtitle("Frequency Of Spot Distribution Classes") +  xlab("Spot Distribution Class") + ylab("Number of Occurrences")
+```
+
+
+It appears that the c-class is not uniformly distributed among the observations, with __C__ being much less frequent than the other classes and __O__ being much more frequent than the other classes.
+
+### Activity
+
+The `activity` variable, according to Bradshaw (1989), details whether or not the activity has not changed over that last 24 hours or has been observed to be reduced.
+
+This variable is stored in R as a `r class(df$activity)`. A 1 indicates reduced activity while a 2 indicated no change.
+
+```{r activity}
+ggplot(df, aes(x = activity, fill = activity)) + geom_bar(alpha = 0.5) +  ggtitle("Frequency Of Activity Classes") +  xlab("Activity Class") + ylab("Number of Occurrences")
+```
+
+It seems that the majority of the observations have reduced activity over a 24 hour period, with `r sum(df$activity == 2)/nrow(df) *100`% showing unchanged activity in a 24 hour period.
+
+### Evolution
+
+The `evolution` variable, according to Bradshaw (1989), details changes in size over the last 24 hours. The variable is categorical, represented by numbers with the following meanings:
+1. Decay
+2. No Growth
+3. Growth
+
+
+```{r evolution}
+ggplot(df, aes(x = evolution, fill = evolution)) + geom_bar(alpha = 0.5) +ggtitle("Frequency Of Evolution Classes") +  xlab("Evolution Class") + ylab("Number of Occurrences")
+```
+
+The distribution of the evolution classes is non uniform. It appears that it is uncommon for decay and more common for growth.
+
+### Previous Day Activity
+
+The `previous_day_activity` variable, according to Bradshaw (1989), details the flare activity of the last previous 24 hours, with the following codes:
+
+1. Nothing as big as an M1
+2. One M1
+3. More than one M1
+
+
+```{r pda}
+ggplot(df, aes(x = previous_day_activity, fill = previous_day_activity)) + geom_bar(alpha = 0.5) + ggtitle("Frequency Of Previous Day Activity Classes") +  xlab("Previous Day Activity Class") + ylab("Number of Occurrences")
+```
+
+It would appear that the majority of the observations had nothing as large as an M1 occur on the previous. However, `r sum(df$previous_day_activity == 3)/nrow(df) * 100`% of the observations had more than one M1 event occur.
+
+### Historically Complex
+
+The `hist_complex` variable, according to Bradshaw (1989), details whether the region has historically been complex.
+
+
+```{r hc}
+ggplot(df, aes(x = hist_complex, fill = hist_complex)) + geom_bar(alpha = 0.5) +  ggtitle("Frequency Of Historically Complex Classes") +  xlab("Historically Complex Class") + ylab("Number of Occurrences")
+```
+
+It seems that the majority of the observations are historically complex, with `r sum(df$hist_complex == 2)/nrow(df) * 100`% of the observations not being historically complex
+
+### Became Historically Complex
+
+The `become_hist_complex` variable, according to Bradshaw (1989), details whether the region became historically complex during this pass across the sun's disk.
+
+
+```{r bhc}
+ggplot(df, aes(x = become_hist_complex, fill = become_hist_complex)) + geom_bar(alpha = 0.5) + ggtitle("Frequency Of Became Historically Complex Classes") +  xlab("Became Historically Complex Class") + ylab("Number of Occurrences")
+```
+
+It seems that the majority of the regions did not become complex during this pass. Of the `r sum(df$hist_complex == 2)` historically complex observations, `r sum(df$become_hist_complex == 1)/sum(df$hist_complex == 2) *100`% became complex during this pass.
+
+
+### Area
+
+The `area` variable, according to Bradshaw (1989) is a categorical indication of whether or not the region in the observation is large or small.
+```{r area}
+ggplot(df, aes(x = area, fill = area)) + geom_bar(alpha = 0.5) +  ggtitle("Frequency Of Area Classes") +  xlab("Area Class") + ylab("Number of Occurrences")
+```
+
+It seems that the vast majority of the observations are regarding a small region.
+### Area Largest
+
+The `area_largest` variable, according to Bradshaw (1989) is a categorical indication of whether or not the largest spot of the region is greater than or less than 5. 
+```{r largestarea}
+ggplot(df, aes(x = area_largest, fill = area_largest)) + geom_bar(alpha = 0.5) +  ggtitle("Frequency Of Largest Area Classes") +  xlab("Largest Area Class") + ylab("Number of Occurrences")
+```
+
+It seems that the majority of the largest spots of a solar flare are greater than 5. 
+
+# Rule Generation
+
+This section generates rules using the arules and arulesViz packages. First, prepare the numeric variables and load the libraries
+```{r getting-started2}
+library(arules)
+library(arulesViz)
+factors <- c("c.class", "m.class","x.class")
+for (f in factors) {
+  df[[f]] <- factor(df[[f]])
+}
+```
+## Growth Rules (Evolution = 3)
+
+When the evolution variable is 3, then the region was experiencing growth. This could indicate that region would be more likely to have flare events in the future.
+
+```{r evolution=3}
+rules <- apriori(df, parameter = list(supp=0.1, conf=0.8, minlen=2), appearance=list(rhs=c("evolution=3")))
+rules.sorted <- sort(rules, by="lift")
+subset.matrix <- is.subset(rules.sorted, rules.sorted)
+subset.matrix[lower.tri(subset.matrix, diag=T)] <- F
+redundant <- colSums(subset.matrix, na.rm=T) >= 1
+rules.pruned <- rules.sorted[!redundant]
+inspect(sort(rules.pruned, by="lift"))
+plot(rules.pruned, method="graph")
+```
+
+It seems like a spot distribution of I and a history of complexity are indicators of growth in the region.
+
+## Decay Rules (Evolution = 1)
+
+When evolution = 1, the region is experiencing decay. This could potentially be useful for finding regions to ignore.
+
+```{r evolution-1}
+rules <- apriori(df, parameter = list(supp=0.1, conf=0.7, minlen=2), appearance=list(rhs=c("evolution=1")))
+rules
+```
+
+However it seems that rules could not be found for decay. This might be from only `r sum(df$evolution==1)/nrow(df) * 100 `% of the observations having decay.
+
+## Reduced Activity (Activity = 1)
+
+Reduced activity could be an indicator that a region is less likely to have a solar flare event and could be useful in prioritizing regions for monitoring.
+
+```{r activity-1}
+rules <- apriori(df, parameter = list(supp=0.1, conf=0.7, minlen=2), appearance=list(rhs=c("activity=1")))
+rules.sorted <- sort(rules, by="lift")
+subset.matrix <- is.subset(rules.sorted, rules.sorted)
+subset.matrix[lower.tri(subset.matrix, diag=T)] <- F
+redundant <- colSums(subset.matrix, na.rm=T) >= 1
+rules.pruned <- rules.sorted[!redundant]
+inspect(sort(rules.pruned[0:5], by="lift"))
+plot(rules.pruned[0:10], method="graph")
+```
+
+The algorithm seems to have been able to find several different rules reduced activity in a region. The algorithm seems to have found several possible candidates. This could be from `r sum(df$activity==1)/nrow(df) * 100 `% of the observations having reduced activity, however.
+
+## Historically Complex (hist_complex = 1) 
+
+
+Finding rules for regions that have historically been classified as complex could useful for finding such regions quickly.
+
+```{r hist-1}
+rules <- apriori(df, parameter = list(supp=0.1, conf=0.7, minlen=2), appearance=list(rhs=c("hist_complex=1")))
+rules.sorted <- sort(rules, by="lift")
+subset.matrix <- is.subset(rules.sorted, rules.sorted)
+subset.matrix[lower.tri(subset.matrix, diag=T)] <- F
+redundant <- colSums(subset.matrix, na.rm=T) >= 1
+rules.pruned <- rules.sorted[!redundant]
+inspect(sort(rules.pruned[0:5], by="lift"))
+plot(rules.pruned[0:10], method="graph")
+```
+
+It seems that the region having a Modified Zurich Class of B or having a largest spot size of X are factors in whether a region is complex.
+
+## Not Historically Complex (hist_complex=2)
+
+On the converse, finding rules for regions that have historically not been complex could be useful for determining if regions pose less of a threat and need less monitoring.
+
+```{r hist-2}
+rules <- apriori(df, parameter = list(supp=0.1, conf=0.7, minlen=2), appearance=list(rhs=c("hist_complex=2")))
+rules.sorted <- sort(rules, by="lift")
+subset.matrix <- is.subset(rules.sorted, rules.sorted)
+subset.matrix[lower.tri(subset.matrix, diag=T)] <- F
+redundant <- colSums(subset.matrix, na.rm=T) >= 1
+rules.pruned <- rules.sorted[!redundant]
+inspect(sort(rules.pruned, by="lift"))
+plot(rules.pruned, method="graph")
+```
+
+It seems that a region having a largest spot size of K tends to a region not being complex. This rule was also the highest lift seen during analysis.
+
+
+
+# References
+
+Bradshaw, G. (1989). UCI Machine Learning Repository: Solar Flare Data Set [CSV]. Retrieved June 8, 2022, from https://archive.ics.uci.edu/ml/datasets/solar+flare 
+
+SIDC. (n.d.). Codes, terminology and classifications. User guide from SIDC - Royal Observatory of Belgium. Retrieved June 8, 2022, from https://www.sidc.be/educational/classification.php 
+
+
+
+
